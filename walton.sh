@@ -7,10 +7,10 @@
 
 ################################[USER OPTIONS]#####################################\
 NUM_OF_GPUS=3                                                                     #/
-WALLET="0xf3faf814cd115ebba078085a3331774b762cf5ee"                             #\
-EXTRA_DATA="glyph"                                                               #/
-RPC_PORT_START=8545
-IP=127.0.0.1                                                               #\
+WALLET="0xf3faf814cd115ebba078085a3331774b762cf5ee"                               #\
+EXTRA_DATA="glyph"                                                                #/
+RPC_PORT_START=8545                                                               #\
+IP=127.0.0.1                                                                      #/
 ###################################################################################/
 
 CT="Content-Type:application/json"
@@ -40,7 +40,7 @@ function ethCoinbase () {
 walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e "\e[32mYou need to use at least one argument for the amount of walton instances, eg: source ./walton.sh 1"
+        echo -e "\e[32mdidn't get any arguments -- use at least one argument for number of instances"
         return -1
     fi
     if [ -z $2 ]; then
@@ -133,7 +133,7 @@ function adminAddPeers () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e "\e[32mYou need to use at least one argument for the amount of walton instances, eg: source ./walton.sh 1"
+        echo -e "\e[32mdidn't get any arguments -- use at least one argument for number of instances"
         return -1
     fi
     if [ -z $2 ]; then
@@ -147,7 +147,13 @@ function adminAddPeers () {
     else
         RPC_START_PORT=$3
     fi
-for ((i=1; i<=$1; i++)); do
+    if  [ -z $4 ]; then
+        echo 'Nothing was set as argument 4, adminAddPeers 1 localhost 8545 "enode://<id>@<ip:port>"'
+        return -1
+    else
+        ETHERBASE='"'$4'"'
+    fi
+    for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[32mNET PEERCOUNT OF\e[31m \e[32mOF WALTON walton:\e[31m $walton\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
         CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_addPeers","params":['$peer'],"id":74}'  | jq '.result'`
@@ -161,7 +167,7 @@ function netPeerCount () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e "\e[32mYou need to use at least one argument for the amount of walton instances, eg: source ./walton.sh 1"
+        echo -e "\e[32mdidn't get any arguments -- use at least one argument for number of instances"
         return -1
     fi
     if [ -z $2 ]; then
@@ -184,20 +190,97 @@ function netPeerCount () {
         walton=$(($walton + 1))
     done
 }
-
-function wMain () {
+function adminNodeInfoEnode () {
+    walton=0
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32mdidn't get any arguments -- use at least one argument for number of instances"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    for ((i=1; i<=$1; i++)); do
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminNodeInfoEnode...\e[96m"`
+        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":64}' | jq '.result' | jq '.enode'` 
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        walton=$(($walton + 1))
+    done
+}
+function adminNodeInfo () {
+    walton=0
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32mdidn't get any arguments -- use at least one argument for number of instances"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    for ((i=1; i<=$1; i++)); do
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting admin_nodeInfo...\e[96m"`
+        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":64}' | jq '.result'` 
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        walton=$(($walton + 1))
+    done
+}
+function adminNodeInfoPorts () {
+    walton=0
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32mdidn't get any arguments -- use at least one argument for number of instances"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    for ((i=1; i<=$1; i++)); do
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting admin_nodeInfo -- Ports...\e[96m"`
+        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":64}' | jq '.result' | jq '.ports'`
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        walton=$(($walton + 1))
+    done
+}
+    function wMain() {
     #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
+    #minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
     #echo " "
-    minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
+    #minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
     #echo " "
-    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START
+    #ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START
     #echo " "
-    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
+    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
     #enumRPCPorts
     echo -e -n "\e[97m"
-}
 
+    }
 wMain
 
