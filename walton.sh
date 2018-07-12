@@ -8,8 +8,9 @@
 ################################[USER OPTIONS]#####################################\
 NUM_OF_GPUS=3                                                                     #/
 WALLET='"0xf3faf814cd115ebba078085a3331774b762cf5ee"'                             #\
-EXTRA_DATA='"glyph'                                                               #/
-RPC_PORT_START=8545                                                               #\
+EXTRA_DATA="glyph"                                                               #/
+RPC_PORT_START=8545
+IP=127.0.0.1                                                               #\
 ###################################################################################/
 
 CT="Content-Type:application/json"
@@ -52,7 +53,7 @@ walton=0
         echo "Setting RPC Start Port To: 8545..."
     else
         RPC_START_PORT=$3
-    fi 
+    fi
  for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[32m Getting eth_coinbase..."`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
@@ -93,7 +94,7 @@ function minerSetExtra () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e "\e[32mYou need to use at least one argument for the amount of walton instances, eg: source ./walton.sh 1"
+        echo -e "\e[32m You must set at least one argumetn for walton instance, eg: minerSetExtra 1"
         return -1
     fi
     if [ -z $2 ]; then
@@ -111,7 +112,7 @@ function minerSetExtra () {
         echo 'No extraData was set as argument 4, minerSetExtra 1 localhost 8545 "extraDataHere"'
         return -1
     else
-        EXTRADATA_WITHGPU_PARAM=$4
+        EXTRADATA_WITHGPU_PARAM='"'$4'"'
     fi
     for ((i=1; i<=$1; i++)); do
         EXTRA_DATA_WITH_GPU=$EXTRA_DATA$walton'"'
@@ -182,13 +183,13 @@ function netPeerCount () {
 function wMain () {
     #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    #minerSetEtherbase $NUM_OF_GPUS $RPC_PORT_START
+    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START 
     #echo " "
-    minerSetExtra $NUM_OF_GPUS  
+    minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
     #echo " "
-    #ethCoinbase $NUM_OF_GPUS $RPC_PORT_START
+    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START
     #echo " "
-    #netPeerCount $NUM_OF_GPUS $RPC_PORT_START
+    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
     #enumRPCPorts
     echo -e -n "\e[97m"
 }
