@@ -15,14 +15,14 @@ RPC_PORT_START=8545                                                             
 CT="Content-Type:application/json"
 echo " " > results.txt
 
-function enumRPCPorts () {    
+function enumRPCPorts () {
     declare -a RPC_PORTS
     for ((i=0;i<$NUM_OF_GPUS;i++)); do
         RPC_PORTS[$i]=$(($RPC_PORT_START+$i))
     done
     declare -p RPC_PORTS
 }
-    
+
 function stripColors () {
     sed "s/\x1B\[\([0-9]\{1,2\}\(;[0-9]\{1,2\}\)\?\)\?[mGK]//g"
 }
@@ -46,11 +46,13 @@ function ethCoinbase () {
     if [ -z $2 ]; then
         RPC_START_PORT=8545
         echo "Setting RPC Start Port To: 8545..."
-    fi  
+		else
+			RPC_START_PORT=$2
+    fi
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[32m Getting eth_coinbase..."`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"eth_coinbase","params":[''],"id":64}' | ./jq '.result'`
+        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"eth_coinbase","params":[''],"id":64}' | jq '.result'`
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Coinbase: \e[33m" && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
@@ -67,11 +69,13 @@ function minerSetEtherbase () {
     if [ -z $2 ]; then
         RPC_START_PORT=8545
         echo "Setting RPC Start Port To: 8545..."
+		else
+			RPC_START_PORT=$2
     fi
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[32m Setting Etherbase to:\e[32m $WALLET \e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setEtherbase","params":['$WALLET'],"id":64}'  | ./jq '.result'`
+        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setEtherbase","params":['$WALLET'],"id":64}'  | jq '.result'`
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Etherbase has been set:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
@@ -84,17 +88,22 @@ function minerSetExtra () {
         echo -e "\e[32mYou need to use at least one argument for the amount of walton instances, eg: source ./walton.sh 1"
         return -1
     fi
-    fi
-    RPC_START_PORT=$2
     if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+	else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
         RPC_START_PORT=8545
         echo "Setting RPC Start Port To: 8545..."
+    else
+	RPC_START_PORT=$3
     fi
     for ((i=1; i<=$1; i++)); do
         EXTRA_DATA_WITH_GPU=$EXTRA_DATA$walton'"'
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Setting extraData as:\e[32m $EXTRA_DATA_WITH_GPU\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setExtra","params":['$EXTRA_DATA_WITH_GPU'],"id":64}' | ./jq '.result'`
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setExtra","params":['$EXTRA_DATA_WITH_GPU'],"id":64}' | jq '.result'`
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Extradata has been set:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
@@ -107,16 +116,18 @@ function adminAddPeers () {
         echo -e "\e[32mYou need to use at least one argument for the amount of walton instances, eg: source ./walton.sh 1"
         return -1
     fi
-    fi
+
     RPC_START_PORT=$2
     if [ -z $2 ]; then
         RPC_START_PORT=8545
         echo "Setting RPC Start Port To: 8545..."
+		else
+			RPC_START_PORT=$2
     fi
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[32mNET PEERCOUNT OF\e[31m \e[32mOF WALTON walton:\e[31m $walton\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_addPeers","params":['$peer'],"id":74}'  | ./jq '.result'`
+        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_addPeers","params":['$peer'],"id":74}'  | jq '.result'`
         echo -e -n "\e[32mADMIN_ADDPEER RESULT  :: $walton :: \e[33m "
         RESULT=`echo $CMD | tee -a results.txt`
         walton=$(($walton + 1))
@@ -134,12 +145,14 @@ function netPeerCount () {
     if [ -z $2 ]; then
         RPC_START_PORT=8545
         echo "Setting RPC Start Port To: 8545..."
+		else
+			RPC_START_PORT=$2
     fi
-    
+
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[32m Getting Peer Count..."`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"net_peerCount","params":[],"id":74}'  | ./jq '.result'`
+        CMD=`curl --silent http://127.0.0.1:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"net_peerCount","params":[],"id":74}'  | jq '.result'`
         RESULT=`echo -n $CMD | stripQuotations`
         OUTPUT2=`echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m net_peerCount:\e[33m " && arg2Decimal $RESULT | tee -a results.txt` && echo $OUTPUT2
         walton=$(($walton + 1))
@@ -148,19 +161,17 @@ function netPeerCount () {
 }
 
 function wMain () {
-    IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
-    #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"    
+    #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
+    #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     #minerSetEtherbase $NUM_OF_GPUS $RPC_PORT_START
     #echo " "
-    #minerSetExtra $NUM_OF_GPUS $RPC_PORT_START
+    minerSetExtra $NUM_OF_GPUS 
     #echo " "
     #ethCoinbase $NUM_OF_GPUS $RPC_PORT_START
     #echo " "
-    netPeerCount $NUM_OF_GPUS    
-    #enumRPCPorts 
+    #netPeerCount $NUM_OF_GPUS $RPC_PORT_START
+    #enumRPCPorts
     echo -e -n "\e[97m"
 }
 
 wMain
-
-
