@@ -108,7 +108,7 @@ function minerSetExtra () {
 	RPC_START_PORT=$3
     fi
     if  [ -z $4 ]; then
-        echo "No extraData was set as argument 4, minerSetExtra 1 localhost 8545 '"extraDataHere"'
+        echo 'No extraData was set as argument 4, minerSetExtra 1 localhost 8545 "extraDataHere"'
         return -1
     else
         EXTRADATA_WITHGPU_PARAM=$4
