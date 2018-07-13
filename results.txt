@@ -5,11 +5,11 @@ true
 
 [walton:2] Setting Etherbase to: "0xf3faf814cd115ebba078085a3331774b762cf5ee" 
 
-[walton:0] Setting extraData as: "glyph"
+[walton:0] Setting extraData as: "glyph"0
 true
-[walton:1] Setting extraData as: "glyph"
+[walton:1] Setting extraData as: "glyph"1
 
-[walton:2] Setting extraData as: "glyph"
+[walton:2] Setting extraData as: "glyph"2
 
 [walton:0] Getting eth_coinbase...
 "0xf3faf814cd115ebba078085a3331774b762cf5ee"
@@ -21,31 +21,9 @@ true
 25[walton:1] Getting Peer Count...
 0[walton:2] Getting Peer Count...
 0[walton:0] Getting eth_blockNumber...
-144586[walton:1] Getting eth_blockNumber...
+144773[walton:1] Getting eth_blockNumber...
 0[walton:2] Getting eth_blockNumber...
 0[walton:0] Getting adminNodeInfoEnode...
-"enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-[walton:0] Adding Peer... as: "enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-true
-[walton:0] Adding Peer... as: "((adminNodeInfoEnode | stripquotations))"
-null
-[walton:0] Adding Peer... as: "0"
-null
-[walton:0] Getting adminNodeInfoEnode...
-"enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-[walton:0] Getting adminNodeInfoEnode...
-"enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-[walton:0] Adding Peer... as: "enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-true
-[walton:0] Getting adminNodeInfoEnode...
-"enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-[walton:0] Getting adminNodeInfoEnode...
-"enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-[walton:0] Getting adminNodeInfoEnode...
-"enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-[walton:0] Adding Peer... as: "enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
-true
-[walton:0] Getting adminNodeInfoEnode...
 "enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
 [walton:0] Adding Peer... as: "enode://56b550983b5b0172ff01dbf85d6e3e8e5d0407988171a1517e551c79c756c93ecaa23fd4fdca522e3db03e05267fa171401391083f8715672729d5d2771296fa@[::]:30303"
 true
