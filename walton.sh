@@ -7,8 +7,8 @@
 
 ################################[USER OPTIONS]#####################################\
 NUM_OF_GPUS=3                                                                     #/
-WALLET="0xf3faf814cd115ebba078085a3331774b762cf5ee"                               #\
-EXTRA_DATA="glyph"                                                                #/
+WALLET=0xf3faf814cd115ebba078085a3331774b762cf5ee                                 #\
+EXTRA_DATA=glyph                                                                  #/
 RPC_PORT_START=8545                                                               #\
 IP=127.0.0.1                                                                      #/
 ###################################################################################/
@@ -48,7 +48,6 @@ walton=0
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
             RPC_SERVER_IP=$2
-            
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -77,7 +76,6 @@ function minerSetEtherbase () {
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
             RPC_SERVER_IP=$2
-            
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -111,7 +109,7 @@ function minerSetExtra () {
         RPC_SERVER_IP=127.0.0.1
         echo -e "\e[32mSetting IP to 127.0.0.1"
 	else
-            RPC_SERVER_IP=$2            
+            RPC_SERVER_IP=$2
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -145,7 +143,7 @@ function adminAddPeers () {
         RPC_SERVER_IP=127.0.0.1
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
-            RPC_SERVER_IP=$2            
+            RPC_SERVER_IP=$2
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -163,7 +161,7 @@ function adminAddPeers () {
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Adding Peer... as:\e[32m $PEER_ENODE\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
         CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_addPeer","params":['$PEER_ENODE'],"id":64}' | ./jq '.result'`
-        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Extradata has been set:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m The Peer has been added:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
 }
@@ -179,7 +177,7 @@ function netPeerCount () {
         RPC_SERVER_IP=127.0.0.1
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
-            RPC_SERVER_IP=$2            
+            RPC_SERVER_IP=$2
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -208,7 +206,6 @@ function adminNodeInfoEnode () {
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
             RPC_SERVER_IP=$2
-            
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -232,7 +229,7 @@ function adminNodeInfo () {
         return -1
     fi
     if [ -z $2 ]; then
-        RPC_SERVER_IP=127.0.0.1        
+        RPC_SERVER_IP=127.0.0.1
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
             RPC_SERVER_IP=$2
@@ -263,7 +260,6 @@ function adminNodeInfoPorts () {
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
             RPC_SERVER_IP=$2
-            
     fi
     if [ -z $3 ]; then
         RPC_START_PORT=8545
@@ -287,7 +283,7 @@ function ethBlockNumber () {
         return -1
     fi
     if [ -z $2 ]; then
-        RPC_SERVER_IP=127.0.0.1        
+        RPC_SERVER_IP=127.0.0.1
         echo -e "\e[32mSetting IP to 127.0.0.1"
         else
             RPC_SERVER_IP=$2
@@ -308,8 +304,8 @@ function ethBlockNumber () {
     done
 }
     function wMain() {
-    IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
-    IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
+    #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
+    #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
     echo " "
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
