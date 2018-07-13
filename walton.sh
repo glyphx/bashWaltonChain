@@ -45,7 +45,7 @@ walton=0
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -73,7 +73,7 @@ function minerSetEtherbase () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -107,7 +107,7 @@ function minerSetExtra () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
 	else
             RPC_SERVER_IP=$2
     fi
@@ -136,12 +136,12 @@ function adminAddPeer () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e '\e[32m adminAddPeer recieved no arguments, usage: adminAddPeer 1 localhost 8545 "enode://<id>@<ip:port>"'
+        echo -e '\e[32m adminAddPeer recieved no arguments, usage: adminAddPeer 1 localhost 8545 enode://<id>@<ip:port>'
         return -1
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -152,7 +152,7 @@ function adminAddPeer () {
         RPC_START_PORT=$3
     fi
     if  [ -z $4 ]; then
-        echo 'Nothing was set as argument 4, usage: adminAddPeer 1 localhost 8545 "enode://<id>@<ip:port>"'
+        echo 'Nothing was set as argument 4, usage: adminAddPeer 1 localhost 8545 enode://<id>@<ip:port>'
         return -1
     else
         PEER_ENODE='"'$4'"'
@@ -175,7 +175,7 @@ function netPeerCount () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -203,7 +203,7 @@ function adminNodeInfoEnode () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -230,7 +230,7 @@ function adminNodeInfo () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -257,7 +257,7 @@ function adminNodeInfoPorts () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -284,7 +284,7 @@ function ethBlockNumber () {
     fi
     if [ -z $2 ]; then
         RPC_SERVER_IP=127.0.0.1
-        echo -e "\e[32mSetting IP to 127.0.0.1"
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
         else
             RPC_SERVER_IP=$2
     fi
@@ -307,14 +307,17 @@ function ethBlockNumber () {
     #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
-    echo " "
+    echo " " | tee results.txt
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
-    echo " "
+    echo " " | tee results.txt
     ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " "
+    echo " " | tee results.txt
+    adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
+    echo " " | tee results.txt
     netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " "
+    echo " " | tee results.txt
     ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
+
 
     #enumRPCPorts
     echo -e -n "\e[97m"
