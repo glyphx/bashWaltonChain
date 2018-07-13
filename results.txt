@@ -1,3 +1,23 @@
  
+[walton:0] Setting Etherbase to: "0xf3faf814cd115ebba078085a3331774b762cf5ee" 
+true
+[walton:0] Setting Etherbase to: "0xf3faf814cd115ebba078085a3331774b762cf5ee" 
+true
+[walton:0] Getting eth_coinbase...
+"0xf3faf814cd115ebba078085a3331774b762cf5ee"
+[walton:0] Setting Etherbase to: "0xf3faf814cd115ebba078085a3331774b762cf5ee" 
+
+[walton:0] Setting Etherbase to: "0xf3faf814cd115ebba078085a3331774b762cf5ee" 
+true
+[walton:0] Setting extraData as: "0xf3faf814cd115ebba078085a3331774b762cf5ee"
+null
+[walton:0] Setting extraData as: "asdf"
+true
+[walton:0] Setting extraData as: "glyph"
+true
+[walton:0] Adding Peer... as: "enode://6be4f39352d69412d0e91594840f998a4f3d6e6dcd7cab56434e425a3bdc7818caa0e7f49f07935b2533c4b60ffd815d2736b5968d2246c04d5322baac17a33@[::]:30303"
+null
+[walton:0] Getting admin_nodeInfo -- Ports...
+{ "discovery": 30303, "listener": 30303 }
 [walton:0] Getting admin_nodeInfo -- Ports...
 { "discovery": 30303, "listener": 30303 }
