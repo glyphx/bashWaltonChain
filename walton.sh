@@ -20,8 +20,8 @@ function enumRPCPorts () {
     declare -a RPC_PORTS
     for ((i=0;i<$NUM_OF_GPUS;i++)); do
         RPC_PORTS[$i]=$(($RPC_PORT_START+$i))
-    done
     declare -p RPC_PORTS
+    done
 }
 
 function stripColors () {
@@ -29,7 +29,7 @@ function stripColors () {
 }
 
 function arg2Decimal () {
-         printf "%d" $1
+    printf "%d" $1
 }
 
 function stripQuotations () {
@@ -299,10 +299,11 @@ function ethBlockNumber () {
         RPC_START_PORT=$3
     fi
     for ((i=1; i<=$1; i++)); do
-        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting eth_blockNumber...\e[96m"`
+       OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[32m Getting eth_blockNumber..."`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":64}' | ./jq '.result'` 
-        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":74}'  | ./jq '.result'`
+        RESULT=`echo -n $CMD | stripQuotations`
+        OUTPUT2=`echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m eth_blockNumber:\e[33m " && arg2Decimal $RESULT | tee -a results.txt` && echo $OUTPUT2
         walton=$(($walton + 1))
     done
 }
@@ -316,6 +317,9 @@ function ethBlockNumber () {
     ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START
     echo " "
     netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
+    echo " "
+    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
+
     #enumRPCPorts
     echo -e -n "\e[97m"
 
