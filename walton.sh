@@ -84,7 +84,7 @@ function minerSetEtherbase () {
         RPC_START_PORT=$3
     fi
     if  [ -z $4 ]; then
-        echo 'No extraData was set as argument 4, minerSetEtherbase 1 localhost 8545 0xf3faf814cd115ebba078085a3331774b762cf5ee'
+        echo 'No etherbase was set as argument 4, minerSetEtherbase 1 localhost 8545 0xf3faf814cd115ebba078085a3331774b762cf5ee'
         return -1
     else
         ETHERBASE='"'$4'"'
@@ -121,22 +121,22 @@ function minerSetExtra () {
         echo 'No extraData was set as argument 4, minerSetExtra 1 localhost 8545 typeYourExtraData'
         return -1
     else
-        EXTRADATA_WITHGPU_PARAM='"'$4'"'
+        EXTRADATA='"'$4'"'
     fi
     for ((i=1; i<=$1; i++)); do
-        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Setting extraData as:\e[32m $EXTRADATA_WITHGPU_PARAM\e[96m"`
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Setting extraData as:\e[32m $EXTRADATA$walton\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setExtra","params":['$EXTRADATA_WITHGPU_PARAM'],"id":64}' | ./jq '.result'`
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setExtra","params":['$EXTRADATA'],"id":64}' | ./jq '.result'`
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Extradata has been set:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
 }
-#not_finished_function_yet
-function adminAddPeers () {
+
+function adminAddPeer () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e '\e[32m adminAddPeers recieved no arguments, usage: adminAddPeers 1 localhost 8545 "enode://<id>@<ip:port>"'
+        echo -e '\e[32m adminAddPeer recieved no arguments, usage: adminAddPeer 1 localhost 8545 "enode://<id>@<ip:port>"'
         return -1
     fi
     if [ -z $2 ]; then
@@ -152,7 +152,7 @@ function adminAddPeers () {
         RPC_START_PORT=$3
     fi
     if  [ -z $4 ]; then
-        echo 'Nothing was set as argument 4, usage: adminAddPeers 1 localhost 8545 "enode://<id>@<ip:port>"'
+        echo 'Nothing was set as argument 4, usage: adminAddPeer 1 localhost 8545 "enode://<id>@<ip:port>"'
         return -1
     else
         PEER_ENODE='"'$4'"'
