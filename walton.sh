@@ -308,21 +308,16 @@ function ethBlockNumber () {
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
     IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
-    echo " " | tee results.txt
-    minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
-    echo " " | tee results.txt
-    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START  
-    echo " " | tee results.txt
-    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " " | tee results.txt
-    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " " | tee results.txt
+    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
+    minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
+    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
+    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START    
+    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
     adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
-    adminNodeInfoEnode 1
+    adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
     ENODE=`echo $RESULT` 
-    for ((j=0;j<$NUM_OF_GPUS;j++)); do               
-    adminAddPeer 1 127.0.0.1 ${RPC_PORTS[$j]} $ENODE    
+    for ((j=1;j<$NUM_OF_GPUS;j++)); do               
+    adminAddPeer 1 $IP ${RPC_PORTS[$j]} $ENODE    
     done    
     echo -e -n "\e[97m"   
     }
