@@ -6,7 +6,7 @@
 #create a peers file, for loop restricted by the entries in peer, retry mechanism
 
 ################################[USER OPTIONS]#####################################\
-NUM_OF_GPUS=3                                                                     #/
+NUM_OF_GPUS=1                                                                     #/
 WALLET=0xf3faf814cd115ebba078085a3331774b762cf5ee                                 #\
 EXTRA_DATA=glyph                                                                  #/
 RPC_PORT_START=8545                                                               #\
@@ -303,8 +303,7 @@ function ethBlockNumber () {
     done
 }
     function wMain() {
-    enumRPCPorts
-    
+    enumRPCPorts    
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
     IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
@@ -316,9 +315,10 @@ function ethBlockNumber () {
     adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
     ENODE=`echo $RESULT` 
-    for ((j=1;j<$NUM_OF_GPUS;j++)); do               
+    for ((j=0;j<$NUM_OF_GPUS;j++)); do               
     adminAddPeer 1 $IP ${RPC_PORTS[$j]} $ENODE    
-    done    
+    done
+    unset RPC_PORTS        
     echo -e -n "\e[97m"   
-    }
+}
 wMain
