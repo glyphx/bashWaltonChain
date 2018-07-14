@@ -12,16 +12,14 @@ EXTRA_DATA=glyph                                                                
 RPC_PORT_START=8545                                                               #\
 IP=127.0.0.1                                                                      #/
 ###################################################################################/
-
+declare -a RPC_PORTS
 CT="Content-Type:application/json"
 echo " " > results.txt
 
-function enumRPCPorts () {
-    declare -a RPC_PORTS
+function enumRPCPorts () {    
     for ((i=0;i<$NUM_OF_GPUS;i++)); do
-        RPC_PORTS[$i]=$(($RPC_PORT_START+$i))
-    declare -p RPC_PORTS
-    done
+        RPC_PORTS[$i]=$(($RPC_PORT_START+$i))    
+    done        
 }
 
 function stripColors () {
@@ -121,12 +119,13 @@ function minerSetExtra () {
         echo 'No extraData was set as argument 4, minerSetExtra 1 localhost 8545 typeYourExtraData'
         return -1
     else
-        EXTRADATA='"'$4'"'
+        EXTRADATA=$4
     fi
     for ((i=1; i<=$1; i++)); do
-        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Setting extraData as:\e[32m $EXTRADATA$walton\e[96m"`
+        EXTRADATA_GPU='"'$EXTRADATA$walton'"'
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Setting extraData as:\e[32m $EXTRADATA_GPU\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setExtra","params":['$EXTRADATA'],"id":64}' | ./jq '.result'`
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"miner_setExtra","params":['$EXTRADATA_GPU'],"id":64}' | ./jq '.result'`
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Extradata has been set:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
@@ -304,24 +303,25 @@ function ethBlockNumber () {
     done
 }
     function wMain() {
+    enumRPCPorts
     #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
-    echo " " | tee results.txt
+    #minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
+    #echo " " | tee results.txt
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
     echo " " | tee results.txt
-    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " " | tee results.txt
-    adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " " | tee results.txt
-    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
-    echo " " | tee results.txt
-    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
-
-
-    #enumRPCPorts
-    echo -e -n "\e[97m"
-
+    #ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START  
+    #echo " " | tee results.txt
+    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
+    #echo " " | tee results.txt
+    #ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
+    #echo " " | tee results.txt
+    #adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
+    #for ((i=0;i<$NUM_OF_GPUS;i++)); do 
+    #adminNodeInfoEnode 1 
+    #done
+    echo ${RPC_PORTS[*]}
+    echo -e -n "\e[97m"   
     }
 wMain
 
