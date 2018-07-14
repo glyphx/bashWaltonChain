@@ -154,7 +154,7 @@ function adminAddPeer () {
         echo 'Nothing was set as argument 4, usage: adminAddPeer 1 localhost 8545 enode://<id>@<ip:port>'
         return -1
     else
-        PEER_ENODE='"'$4'"'
+        PEER_ENODE=$4
     fi
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Adding Peer... as:\e[32m $PEER_ENODE\e[96m"`
@@ -216,7 +216,7 @@ function adminNodeInfoEnode () {
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminNodeInfoEnode...\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
         CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":64}' | ./jq '.result' | ./jq '.enode'` 
-        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
 }
@@ -304,24 +304,26 @@ function ethBlockNumber () {
 }
     function wMain() {
     enumRPCPorts
-    #IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
-    #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    #minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
-    #echo " " | tee results.txt
+    
+    echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
+    IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
+    IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
+    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET
+    echo " " | tee results.txt
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA
     echo " " | tee results.txt
-    #ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START  
-    #echo " " | tee results.txt
-    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
-    #echo " " | tee results.txt
-    #ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
-    #echo " " | tee results.txt
-    #adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
-    #for ((i=0;i<$NUM_OF_GPUS;i++)); do 
-    #adminNodeInfoEnode 1 
-    #done
-    echo ${RPC_PORTS[*]}
+    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START  
+    echo " " | tee results.txt
+    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
+    echo " " | tee results.txt
+    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START
+    echo " " | tee results.txt
+    adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
+    adminNodeInfoEnode 1
+    ENODE=`echo $RESULT` 
+    for ((j=0;j<$NUM_OF_GPUS;j++)); do               
+    adminAddPeer 1 127.0.0.1 ${RPC_PORTS[$j]} $ENODE    
+    done    
     echo -e -n "\e[97m"   
     }
 wMain
-
