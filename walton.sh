@@ -12,7 +12,10 @@ EXTRA_DATA=glyph                                                                
 RPC_PORT_START=8545                                                               #\
 IP=127.0.0.1                                                                      #/
 ###################################################################################/
+unset RPC_PORTS 
+unset PEERS  
 declare -a RPC_PORTS
+declare -a PEERS
 CT="Content-Type:application/json"
 echo " " > results.txt
 
@@ -302,11 +305,11 @@ function ethBlockNumber () {
         walton=$(($walton + 1))
     done
 }
-function adminPeers () {
+function adminPeersID () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e "\e[32m adminPeers didn't get any arguments -- use at least one argument for the number of instances"
+        echo -e "\e[32m adminPeersID didn't get any arguments -- use at least one argument for the number of instances"
         return -1
     fi
     if [ -z $2 ]; then
@@ -321,32 +324,42 @@ function adminPeers () {
     else
         RPC_START_PORT=$3
     fi
-    for ((i=1; i<=$1; i++)); do
-        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeers...\e[96m"`
+    for ((i=0; i<$1; i++)); do
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeersID...\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' |./jq -r .[0.?] | ./jq -C .[24?].'network'.'remoteAddress'  2> /dev/null` 
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'id'  2> /dev/null` 
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
-        walton=$(($walton + 1))
+        PEERS[$i]=$RESULT
     done
 }
     function wMain() {
     enumRPCPorts    
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
-    IPv4=$(curl --silent -4 icanhazip.com) && echo "$IPv4"
     IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
     ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
-    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START    
+    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
+    peerCount=`echo $RESULT`
+    echo $peerCount    
     ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
     adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
-    ENODE=`echo $RESULT` 
-    for ((j=0;j<$NUM_OF_GPUS;j++)); do               
-    adminAddPeer 1 $IP ${RPC_PORTS[$j]} $ENODE    
-    done
-    adminPeers $NUM_OF_GPUS $IP $RPC_PORT_START
-    unset RPC_PORTS        
+    ENODE=`echo $RESULT`
+    
+    adminPeersID $peerCount $IP ${RPC_PORTS[0]}
+    
+    echo ${PEERS[*]}
+   # for ((k=0;k<$NUM_OF_GPUS;k++)); do               
+        #adminAddPeer 1 $IP ${RPC_PORTS[$k]} $ENODE    
+    #done
+    
+    #for ((r=0;r<$peerCount;r++)); do
+        PEERS[$r]=$(())    
+    #done   
+    #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START
+         
     echo -e -n "\e[97m"   
 }
+#add eth.mining
 wMain
