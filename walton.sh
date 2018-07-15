@@ -309,7 +309,7 @@ function adminPeersID () {
     walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
-        echo -e "\e[32m adminPeersID didn't get any arguments -- use at least one argument for the number of instances"
+        echo -e "\e[32m adminPeersID didn't get any arguments -- use at least one argument for the number of peers"
         return -1
     fi
     if [ -z $2 ]; then
@@ -332,6 +332,33 @@ function adminPeersID () {
         PEERS[$i]=$RESULT
     done
 }
+function adminPeersRemoteIP () {
+    walton=0
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32m adminPeersRemoteIP didn't get any arguments -- use at least one argument for the number of peers"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    for ((i=0; i<$1; i++)); do
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`
+        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress'  2> /dev/null` 
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        PEERS[$i]=$RESULT
+    done
+}
     function wMain() {
     enumRPCPorts    
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
@@ -347,15 +374,15 @@ function adminPeersID () {
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
     ENODE=`echo $RESULT`
     
-    adminPeersID $peerCount $IP ${RPC_PORTS[0]}
-    
+    #adminPeersID $peerCount $IP ${RPC_PORTS[0]}
+    #adminPeersRemoteIP $peerCount $IP ${RPC_PORTS[0]}
     echo ${PEERS[*]}
    # for ((k=0;k<$NUM_OF_GPUS;k++)); do               
         #adminAddPeer 1 $IP ${RPC_PORTS[$k]} $ENODE    
     #done
     
     #for ((r=0;r<$peerCount;r++)); do
-        PEERS[$r]=$(())    
+       # PEERS[$r]=$(())    
     #done   
     #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START
          
