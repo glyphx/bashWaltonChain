@@ -302,6 +302,33 @@ function ethBlockNumber () {
         walton=$(($walton + 1))
     done
 }
+function adminPeers () {
+    walton=0
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32m adminPeers didn't get any arguments -- use at least one argument for the number of instances"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    for ((i=1; i<=$1; i++)); do
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeers...\e[96m"`
+        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' |./jq -r .[0.?] | ./jq -C .[24?].'network'.'remoteAddress'  2> /dev/null` 
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        walton=$(($walton + 1))
+    done
+}
     function wMain() {
     enumRPCPorts    
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
@@ -318,6 +345,7 @@ function ethBlockNumber () {
     for ((j=0;j<$NUM_OF_GPUS;j++)); do               
     adminAddPeer 1 $IP ${RPC_PORTS[$j]} $ENODE    
     done
+    adminPeers $NUM_OF_GPUS $IP $RPC_PORT_START
     unset RPC_PORTS        
     echo -e -n "\e[97m"   
 }
