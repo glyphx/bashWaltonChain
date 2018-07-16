@@ -272,7 +272,7 @@ function adminNodeInfoPorts () {
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting admin_nodeInfo -- Ports...\e[96m"`
         echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":64}' | ./jq '.result' | ./jq '.ports'`
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_nodeInfo","params":[],"id":64}' | ./jq -r .[0.] | ./jq .[24].network 2>/dev/null`
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
@@ -302,6 +302,34 @@ function ethBlockNumber () {
         CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":74}'  | ./jq '.result'`
         RESULT=`echo -n $CMD | stripQuotations`
         OUTPUT2=`echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m eth_blockNumber:\e[33m " && arg2Decimal $RESULT | tee -a results.txt` && echo $OUTPUT2
+        walton=$(($walton + 1))
+    done
+}
+
+function ethMining () {
+    walton=0
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32m ethMining didn't get any arguments -- use at least one argument for the number of peers"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    for ((i=1; i<=$1; i++)); do        
+        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting ming mining status:\e[96m"`
+        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"eth_mining","params":[],"id":64}' | ./jq '.result'`
+        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Mining Status:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
 }
@@ -353,37 +381,36 @@ function adminPeersRemoteIP () {
     fi
     for ((i=0; i<$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`
-        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress'  2> /dev/null` 
-        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+        echo $OUTPUT | stripColors >> results.txt
+        CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress'  2> /dev/null` 
+        RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT 1>/dev/null
         PEERS[$i]=$RESULT
     done
 }
     function wMain() {
     enumRPCPorts    
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
-    IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
+    #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
     ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
     netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
     peerCount=`echo $RESULT`
-    echo $peerCount    
+    ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
     ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
     adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
-    adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
-    ENODE=`echo $RESULT`
+    adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}    
+    adminPeersID $peerCount $IP ${RPC_PORTS[0]}
+    adminPeersRemoteIP $peerCount $IP ${RPC_PORTS[0]}
+    echo "Pinging all peers and printing the average... this can take awhile to wait for peers who don't respond."
+    for PEER in ${PEERS[@]}; do 
+    printf "%-8s\n" ${PEER} | tee results.txt
+    ping $(echo ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1| awk '{print $9}' | cut -d '/' -f 2    
+    done | column
+
     
-    #adminPeersID $peerCount $IP ${RPC_PORTS[0]}
-    #adminPeersRemoteIP $peerCount $IP ${RPC_PORTS[0]}
-    echo ${PEERS[*]}
-   # for ((k=0;k<$NUM_OF_GPUS;k++)); do               
-        #adminAddPeer 1 $IP ${RPC_PORTS[$k]} $ENODE    
-    #done
-    
-    #for ((r=0;r<$peerCount;r++)); do
-       # PEERS[$r]=$(())    
-    #done   
+     
+   
     #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START
          
     echo -e -n "\e[97m"   
