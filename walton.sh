@@ -19,6 +19,14 @@ declare -a PEERS
 CT="Content-Type:application/json"
 echo " " > results.txt
 
+red=$'\e[1;31m'
+grn=$'\e[1;32m'
+yel=$'\e[1;33m'
+blu=$'\e[1;34m'
+mag=$'\e[1;35m'
+cyn=$'\e[1;36m'
+end=$'\e[0m'
+
 function enumRPCPorts () {    
     for ((i=0;i<$NUM_OF_GPUS;i++)); do
         RPC_PORTS[$i]=$(($RPC_PORT_START+$i))    
@@ -38,7 +46,7 @@ function stripQuotations () {
 }
 
 function ethCoinbase () {
-walton=0
+    walton=0
     echo -e "\e[32m"
     if [ -z $1 ]; then
         echo -e "\e[32m ethCoinbase didn't get any arguments -- use at least one argument for the number of instances"
@@ -382,14 +390,14 @@ function adminPeersRemoteIP () {
     for ((i=0; i<$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`
         echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress'  2> /dev/null` 
+        CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
         RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT 1>/dev/null
         PEERS[$i]=$RESULT
     done
 }
     function wMain() {
     enumRPCPorts    
-    echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
+    echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"1
     #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
@@ -402,18 +410,13 @@ function adminPeersRemoteIP () {
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}    
     adminPeersID $peerCount $IP ${RPC_PORTS[0]}
     adminPeersRemoteIP $peerCount $IP ${RPC_PORTS[0]}
-    echo "Pinging all peers and printing the average... this can take awhile to wait for peers who don't respond."
+    echo "Pinging all peers and printing the average... this can take awhile to wait for peers who don't respond."    
     for PEER in ${PEERS[@]}; do 
-    printf "%-8s\n" ${PEER} | tee results.txt
-    ping $(echo ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1| awk '{print $9}' | cut -d '/' -f 2    
-    done | column
-
-    
-     
-   
-    #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START
-         
-    echo -e -n "\e[97m"   
+    printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
+    ping -4 -w 250 -n 4 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1| awk '{print $9}' | cut -d '/' -f 2
+       
+    done #| column 
+    #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START         
+    echo -e -n "\e[97m" 
 }
-#add eth.mining
 wMain
