@@ -412,10 +412,10 @@ function wMain() {
     adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
     adminPeersID $peerCount $IP ${RPC_PORTS[0]}
     adminPeersRemoteIP $peerCount $IP ${RPC_PORTS[0]}
-    echo "Pinging all peers and printing the average... this can take awhile to wait for peers who don't respond."    
+    echo "Pinging all peers twice, timeout 750ms peers and printing the average... "    
     for PEER in ${PEERS[@]}; do 
     printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
-    ping -4 -w 750 -n 1 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1| awk '{print $9}' | cut -d '/' -f 2       
+    ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1| awk '{print $9}' | cut -d '/' -f 2       
     done #| column 
     #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START         
     echo -e -n "\e[97m" 
