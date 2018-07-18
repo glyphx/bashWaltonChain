@@ -27,7 +27,7 @@ yel=$'\e[33m'
 blu=$'\e[34m'
 mag=$'\e[35m'
 cyn=$'\e[36m'
-end=$'\e[0m'
+end=$'\e[0m' #produced different color results -- figure out why.
 
 function enumRPCPorts () {    
     for ((i=0;i<$NUM_OF_GPUS;i++)); do
@@ -400,12 +400,13 @@ function adminPeersRemoteIP () {
         RPC_START_PORT=$3
     fi
     unset peerCount
-    declare -a peerCount
+    declare -a peerCount    
     netPeerCount $1 $2 $3 #needed to set global peer array
-    for ((j=1; j<=$1; j++)); do  
-    OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`     
-        for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do            
-            echo $OUTPUT | stripColors >> results.txt
+    walton=0
+    for ((j=1; j<=$1; j++)); do     
+        for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
+            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP \e[91m$i\e[32m...\e[96m"`            
+            echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
             CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
@@ -441,7 +442,7 @@ function pingPeers() {
     done
 }
 function wMain() {
-    enumRPCPorts    
+    enumRPCPorts
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
     IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
@@ -455,13 +456,13 @@ function wMain() {
     adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
     adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START    
     adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START
-    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START  
+    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START  #netPeerCount stand alone example.
     echo -e "\e[32mPinging all peers twice with timeout 750ms and printing the average... "    
     for PEER in ${PEERS[@]}; do 
     printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
     ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1 | awk '{print $9}' | cut -d '/' -f 2       
     done #| column 
-    #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START         
+         
     echo -e -n "\e[97m" 
 }
 wMain
