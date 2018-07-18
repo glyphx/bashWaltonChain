@@ -1,23 +1,34 @@
 #!/bin/bash
-#only edit this file with LF or in linux  Do not save with CRLF (windows default) or it will not work.
+
+#Only save this file with LF (linefeed), not windows default of CRLF, use notepad++ to ensure this.
+#Notepad++/VSCode/Sublimetext displays which LF/CRLF it will be saving it with in the bottom right.
+
 #You should call this script like: source walton.sh  or equivalently:  . ./walton.sh
-#gitbash version
-#results .txt best viewable with cat, nano or vi inside bash, or wordpad in windows or basically anything besides notepad.
-#create a peers file, for loop restricted by the entries in peer, retry mechanism
+
+#The results are stored in results.txt, which is best viewable with anything other than notepad.
+declare -a NUMBER_OF_WALTONS
+declare -a WALLET
+declare -a EXTRA_DATA
+declare -a RPC_PORT
+declare -a IP
 
 ################################[USER OPTIONS]#####################################\
-NUM_OF_GPUS=2                                                                     
+NUMBER_OF_WALTONS=2   #turn into arrays of all these parameters                                                 #walton.exe's                 
 WALLET=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
 EXTRA_DATA=glyph                               #less than or equal to 31 char                                  
 RPC_PORT_START=8545                                                            
 IP=127.0.0.1                                                                      
-###################################################################################/
+################################[USER OPTIONS]#####################################/
+
+
 unset RPC_PORTS 
 unset PEERS
-unset peerCount  
+unset peerCount
+unset RIG_INFO_ARRAY 
 declare -a RPC_PORTS
 declare -a PEERS
 declare -a peerCount
+declare -a RIG_INFO_ARRAY
 CT="Content-Type:application/json"
 echo " " > results.txt
 
@@ -431,22 +442,32 @@ function pingPeers() {
     done #| column 
 }
 function wMain() {
-    enumRPCPorts
-    echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
-    IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
-    minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
-    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START       
-    ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
-    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
-    adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
+    
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
     ENODE_WALTON0=`echo $RESULT`
-    adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
-    adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START    
-    pingPeers $NUM_OF_GPUS $IP $RPC_PORT_START
-    #adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START #adminPeersRemoteIP stand alone example.
-    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START  #netPeerCount stand alone example.    
-    echo -e -n "\e[97m" 
+
+        enumRPCPorts
+        echo -e "\e[32mRunning on RPC PORTS: '${RPC_PORTS[*]}'"
+        #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
+
+        minerSetEtherbase $NUMBER_OF_WALTONS $IP $RPC_PORT_START $WALLET    
+        minerSetExtra $NUMBER_OF_WALTONS $IP $RPC_PORT_START $EXTRA_DATA 
+        adminAddPeer $NUMBER_OF_WALTONS $IP $RPC_PORT_START $ENODE_WALTON0    
+               
+        ethMining $NUMBER_OF_WALTONS $IP $RPC_PORT_START       
+        ethBlockNumber $NUMBER_OF_WALTONS $IP $RPC_PORT_START    
+        adminNodeInfoEnode $NUMBER_OF_WALTONS $IP $RPC_PORT_START        
+           
+        adminPeersID $NUMBER_OF_WALTONS $IP $RPC_PORT_START    
+        pingPeers $NUMBER_OF_WALTONS $IP $RPC_PORT_START
+        #ethCoinbase $NUMBER_OF_WALTONS $IP $RPC_PORT_START #stand alone coinbase example.
+        #adminPeersRemoteIP $NUMBER_OF_WALTONS $IP $RPC_PORT_START #adminPeersRemoteIP stand alone example.
+        #netPeerCount $NUMBER_OF_WALTONS $IP $RPC_PORT_START  #netPeerCount stand alone example.    
+        echo -e -n "\e[97m"     
 }
-wMain
+    NUM_OF_RIGS=1
+    for ((r=1;r<=$NUM_OF_RIGS;r++)); do
+
+        wMain
+    done
+
