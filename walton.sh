@@ -22,11 +22,11 @@ CT="Content-Type:application/json"
 echo " " > results.txt
 
 red=$'\e[1;31m'
-grn=$'\e[1;32m'
-yel=$'\e[1;33m'
-blu=$'\e[1;34m'
-mag=$'\e[1;35m'
-cyn=$'\e[1;36m'
+grn=$'\e[32m'
+yel=$'\e[33m'
+blu=$'\e[34m'
+mag=$'\e[35m'
+cyn=$'\e[36m'
 end=$'\e[0m'
 
 function enumRPCPorts () {    
@@ -370,13 +370,12 @@ function adminPeersID () {
     walton=0
     for ((j=1; j<=$1; j++)); do       
         for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
-            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerID $red$i$grn...$yel"`
+            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerID \e[91m$i\e[32m...\e[33m"`
             echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
             CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2> /dev/null | ./jq .[$i].'id'  2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
-        done
-        echo "GPU: $walton"        
+        done               
         walton=$(($walton + 1))        
     done
 }
@@ -447,21 +446,20 @@ function wMain() {
     IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
-    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
-    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START    
+    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START       
     ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
     ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
     adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
     ENODE_WALTON0=`echo $RESULT`
     adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
-    adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START
-    
-    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START 
-    echo "Pinging all peers twice with timeout 750ms and printing the average... "    
+    adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START    
+    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START
+    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START  
+    echo -e "\e[32mPinging all peers twice with timeout 750ms and printing the average... "    
     for PEER in ${PEERS[@]}; do 
     printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
-    ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1| awk '{print $9}' | cut -d '/' -f 2       
+    ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1 | awk '{print $9}' | cut -d '/' -f 2       
     done #| column 
     #adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START         
     echo -e -n "\e[97m" 
