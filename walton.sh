@@ -407,7 +407,7 @@ function adminPeersRemoteIP () {
         for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
             OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP \e[91m$i\e[32m...\e[33m"`            
             echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-            CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
+            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
         done                
