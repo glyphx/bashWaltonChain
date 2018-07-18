@@ -405,7 +405,7 @@ function adminPeersRemoteIP () {
     walton=0
     for ((j=1; j<=$1; j++)); do     
         for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
-            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP \e[91m$i\e[32m...\e[96m"`            
+            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP \e[91m$i\e[32m...\e[33m"`            
             echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
             CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
@@ -415,7 +415,7 @@ function adminPeersRemoteIP () {
     done
 }
 function pingPeers() {
-     walton=0
+     
     echo -e "\e[32m"
     if [ -z $1 ]; then
         echo -e "\e[32m pingPeers didn't get any arguments -- use at least one argument for the number of instances"
@@ -433,13 +433,12 @@ function pingPeers() {
     else
         RPC_START_PORT=$3
     fi
-      for ((i=0; i<$1; i++)); do
-        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`
-        echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
-        RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT 1>/dev/null
-        PEERS[$i]=$RESULT
-    done
+    walton=0
+    adminPeersRemoteIP $1 $2 $3
+    for PEER in ${PEERS[@]}; do 
+        printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
+        ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1 | awk '{print $9}' | cut -d '/' -f 2       
+    done #| column 
 }
 function wMain() {
     enumRPCPorts
@@ -455,14 +454,9 @@ function wMain() {
     ENODE_WALTON0=`echo $RESULT`
     adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
     adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START    
-    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START
-    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START  #netPeerCount stand alone example.
-    echo -e "\e[32mPinging all peers twice with timeout 750ms and printing the average... "    
-    for PEER in ${PEERS[@]}; do 
-    printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
-    ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1 | awk '{print $9}' | cut -d '/' -f 2       
-    done #| column 
-         
+    pingPeers $NUM_OF_GPUS $IP $RPC_PORT_START
+    #adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START #adminPeersRemoteIP stand alone example.
+    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START  #netPeerCount stand alone example.    
     echo -e -n "\e[97m" 
 }
 wMain
