@@ -34,19 +34,15 @@ function enumRPCPorts () {
         RPC_PORTS[$i]=$(($RPC_PORT_START+$i))    
     done        
 }
-
 function stripColors () {
     sed "s/\x1B\[\([0-9]\{1,2\}\(;[0-9]\{1,2\}\)\?\)\?[mGK]//g"
 }
-
 function arg2Decimal () {
     printf "%d" $1
 }
-
 function stripQuotations () {
     sed -e 's/^"//' -e 's/"$//'
 }
-
 function ethCoinbase () {
     walton=0
     echo -e "\e[32m"
@@ -74,7 +70,6 @@ function ethCoinbase () {
         walton=$(($walton + 1))
     done
 }
-
 function minerSetEtherbase () {
     walton=0
     echo -e "\e[32m"
@@ -107,8 +102,7 @@ function minerSetEtherbase () {
         echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m Etherbase has been set:\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
         walton=$(($walton + 1))
     done
-    }
-
+}
 function minerSetExtra () {
     walton=0
     echo -e "\e[32m"
@@ -143,7 +137,6 @@ function minerSetExtra () {
         walton=$(($walton + 1))
     done
 }
-
 function adminAddPeer () {
     walton=0
     echo -e "\e[32m"
@@ -177,7 +170,6 @@ function adminAddPeer () {
         walton=$(($walton + 1))
     done
 }
-
 function netPeerCount () {
     walton=0
     echo -e "\e[32m"
@@ -316,7 +308,6 @@ function ethBlockNumber () {
         walton=$(($walton + 1))
     done
 }
-
 function ethMining () {
     walton=0
     echo -e "\e[32m"
@@ -379,7 +370,6 @@ function adminPeersID () {
         walton=$(($walton + 1))        
     done
 }
-
 function adminPeersRemoteIP () {
     walton=0    
     echo -e "\e[32m"
