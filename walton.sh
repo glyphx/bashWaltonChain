@@ -14,10 +14,12 @@ IP=127.0.0.1                                                                    
 ###################################################################################/
 unset RPC_PORTS 
 unset PEERS
-unset peerCount  
+unset peerCount
+unset enodeArray  
 declare -a RPC_PORTS
 declare -a PEERS
 declare -a peerCount
+declare -a enodeArray
 CT="Content-Type:application/json"
 echo " " > results.txt
 
@@ -373,6 +375,7 @@ function adminPeersID () {
 }
 function adminPeersRemoteIP () {
     walton=0
+    declare -a PEERCOUNT
     echo -e "\e[32m"
     if [ -z $1 ]; then
         echo -e "\e[32m adminPeersRemoteIP didn't get any arguments -- use at least one argument for the number of instances"
@@ -391,17 +394,17 @@ function adminPeersRemoteIP () {
         RPC_START_PORT=$3
     fi
     if  [ -z $4 ]; then
-        echo 'Nothing was set as argument 4, usage: adminPeersRemoteIP <numOfGPUs> <IP> <RPC Port Start> <NumOfPeers>'
+        echo 'Nothing was set as argument 4, usage: adminPeersRemoteIP <numOfGPUs> <IP> <RPC Port Start> <NumOfPeersArray>'
         return -1
     else
         PEERCOUNT=$4
     fi
     for ((j=1; j<=$1; j++)); do
-        for ((i=0; i<$PEERCOUNT; i++)); do
+        for ((i=0; i<${PEERCOUNT[$(($j-1))]}; i++)); do
             OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`
             echo $OUTPUT | stripColors >> results.txt
-            CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
-            RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT 1>/dev/null        
+            CMD=`curl --silent ''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
+            RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
         done
         walton=$(($walton + 1))
@@ -437,23 +440,21 @@ function pingPeers() {
 function wMain() {
     enumRPCPorts    
     echo "Running on RPC PORTS: '${RPC_PORTS[*]}'"
-    #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
-    #minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
-    #minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
-    #ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
-    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
-    
-    
-    #ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
-    #ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
-    #adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
-    #adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
-    #ENODE_WALTON0=`echo $RESULT`
-    #adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
-    #adminPeersID $peerCount $IP ${RPC_PORTS[0]}  
+    IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
+    minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
+    minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
+    ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
+    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START    
+    ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
+    ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
+    adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
+    adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
+    ENODE_WALTON0=`echo $RESULT`
+    adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
+    adminPeersID $peerCount $IP ${RPC_PORTS[0]}  
     echo ${peerCount[0]}
     echo ${peerCount[*]}
-    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START ${peerCount[0]}
+    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START ${peerCount[*]}
     echo "Pinging all peers twice with timeout 750ms and printing the average... "    
     for PEER in ${PEERS[@]}; do 
     printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
