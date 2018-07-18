@@ -403,6 +403,7 @@ function wMain() {
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
     ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
     netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START
+    netPeerCount 1 $IP $RPC_PORT_START
     peerCount=`echo $RESULT`
     ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
     ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
