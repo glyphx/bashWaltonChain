@@ -6,20 +6,18 @@
 #create a peers file, for loop restricted by the entries in peer, retry mechanism
 
 ################################[USER OPTIONS]#####################################\
-NUM_OF_GPUS=1                                                                     #/
-WALLET=0xf3faf814cd115ebba078085a3331774b762cf5ee                                 #\
-EXTRA_DATA=glyph                                                                  #/
-RPC_PORT_START=8545                                                               #\
-IP=127.0.0.1                                                                      #/
+NUM_OF_GPUS=2                                                                     
+WALLET=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
+EXTRA_DATA=glyph                               #less than or equal to 31 char                                  
+RPC_PORT_START=8545                                                            
+IP=127.0.0.1                                                                      
 ###################################################################################/
 unset RPC_PORTS 
 unset PEERS
-unset peerCount
-unset enodeArray  
+unset peerCount  
 declare -a RPC_PORTS
 declare -a PEERS
 declare -a peerCount
-declare -a enodeArray
 CT="Content-Type:application/json"
 echo " " > results.txt
 
@@ -346,8 +344,9 @@ function ethMining () {
         walton=$(($walton + 1))
     done
 }
-function adminPeersID () {
-    walton=0
+function adminPeersID () {    
+    unset PEERS
+    declare -a PEERS
     echo -e "\e[32m"
     if [ -z $1 ]; then
         echo -e "\e[32m adminPeersID didn't get any arguments -- use at least one argument for the number of peers"
@@ -365,17 +364,25 @@ function adminPeersID () {
     else
         RPC_START_PORT=$3
     fi
-    for ((i=0; i<$1; i++)); do
-        OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeersID...\e[96m"`
-        echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-        CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'id'  2> /dev/null` 
-        echo -e -n "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[33m " && RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
-        PEERS[$i]=$RESULT
+    unset peerCount
+    declare -a peerCount
+    netPeerCount $1 $2 $3 #needed to set global peer array
+    walton=0
+    for ((j=1; j<=$1; j++)); do       
+        for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
+            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerID $red$i$grn...$yel"`
+            echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2> /dev/null | ./jq .[$i].'id'  2> /dev/null` 
+            RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
+            PEERS[$(($i+$j-1))]=$RESULT
+        done
+        echo "GPU: $walton"        
+        walton=$(($walton + 1))        
     done
 }
+
 function adminPeersRemoteIP () {
-    walton=0
-    declare -a PEERCOUNT
+    walton=0    
     echo -e "\e[32m"
     if [ -z $1 ]; then
         echo -e "\e[32m adminPeersRemoteIP didn't get any arguments -- use at least one argument for the number of instances"
@@ -393,21 +400,18 @@ function adminPeersRemoteIP () {
     else
         RPC_START_PORT=$3
     fi
-    if  [ -z $4 ]; then
-        echo 'Nothing was set as argument 4, usage: adminPeersRemoteIP <numOfGPUs> <IP> <RPC Port Start> <NumOfPeersArray>'
-        return -1
-    else
-        PEERCOUNT=$4
-    fi
-    for ((j=1; j<=$1; j++)); do
-        for ((i=0; i<${PEERCOUNT[$(($j-1))]}; i++)); do
-            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`
+    unset peerCount
+    declare -a peerCount
+    netPeerCount $1 $2 $3 #needed to set global peer array
+    for ((j=1; j<=$1; j++)); do  
+    OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP...\e[96m"`     
+        for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do            
             echo $OUTPUT | stripColors >> results.txt
-            CMD=`curl --silent ''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
+            CMD=`curl --silent $RPC_SERVER_IP:$RPC_START_PORT -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
-        done
-        walton=$(($walton + 1))
+        done                
+        walton=$(($walton + 1))        
     done
 }
 function pingPeers() {
@@ -444,17 +448,16 @@ function wMain() {
     minerSetEtherbase $NUM_OF_GPUS $IP $RPC_PORT_START $WALLET    
     minerSetExtra $NUM_OF_GPUS $IP $RPC_PORT_START $EXTRA_DATA    
     ethCoinbase $NUM_OF_GPUS $IP $RPC_PORT_START    
-    netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START    
+    #netPeerCount $NUM_OF_GPUS $IP $RPC_PORT_START    
     ethMining $NUM_OF_GPUS $IP $RPC_PORT_START       
     ethBlockNumber $NUM_OF_GPUS $IP $RPC_PORT_START    
     adminNodeInfoEnode $NUM_OF_GPUS $IP $RPC_PORT_START
     adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
     ENODE_WALTON0=`echo $RESULT`
     adminAddPeer $NUM_OF_GPUS $IP $RPC_PORT_START $ENODE_WALTON0    
-    adminPeersID $peerCount $IP ${RPC_PORTS[0]}  
-    echo ${peerCount[0]}
-    echo ${peerCount[*]}
-    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START ${peerCount[*]}
+    adminPeersID $NUM_OF_GPUS $IP $RPC_PORT_START
+    
+    adminPeersRemoteIP $NUM_OF_GPUS $IP $RPC_PORT_START 
     echo "Pinging all peers twice with timeout 750ms and printing the average... "    
     for PEER in ${PEERS[@]}; do 
     printf "%-8s\n" $grn ${PEER} $yel| tee results.txt    
