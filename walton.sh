@@ -477,6 +477,7 @@ function wMain() {
         ENODE_ZEROES[$1]=`echo $RESULT`  
         for ((k=0;k<$1+1;k++)); do 
             adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}
+            adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}           
         done            
         
         ethMining ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}       
