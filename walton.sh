@@ -1,34 +1,55 @@
 #!/bin/bash
-
 #Only save this file with LF (linefeed), not windows default of CRLF, use notepad++ to ensure this.
 #Notepad++/VSCode/Sublimetext displays which LF/CRLF it will be saving it with in the bottom right.
-
 #You should call this script like: source walton.sh  or equivalently:  . ./walton.sh
-
 #The results are stored in results.txt, which is best viewable with anything other than notepad.
+#FOR ADVANCED CONFIGURATION: Look in the wMain() function at the bottom of the script.
+unset NUMBER_OF_WALTONS
+unset WALLET
+unset EXTRA_DATA
+unset RPC_PORT
+unset IP
 declare -a NUMBER_OF_WALTONS
 declare -a WALLET
 declare -a EXTRA_DATA
 declare -a RPC_PORT
 declare -a IP
-
+r=0
 ################################[USER OPTIONS]#####################################\
-NUMBER_OF_WALTONS=2   #turn into arrays of all these parameters                                                 #walton.exe's                 
-WALLET=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
-EXTRA_DATA=glyph                               #less than or equal to 31 char                                  
-RPC_PORT_START=8545                                                            
-IP=127.0.0.1                                                                      
+NUM_OF_RIGS=1
+
+###RIG1###
+NUMBER_OF_WALTONS[0]=1                                  #walton.exe's                 
+WALLET[0]=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
+EXTRA_DATA[0]=glyph                                     #less than or equal to 31 characters                                  
+RPC_PORT_START[0]=8545                                                            
+IP[0]=127.0.0.1
+
+###RIG2###
+#NUMBER_OF_WALTONS[1]=1                                                                     
+#WALLET[1]=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
+#EXTRA_DATA[1]=glyph                                                               
+#RPC_PORT_START[1]=8545                                                            
+#IP[1]=127.0.0.1
+
+###RIG3###
+#NUMBER_OF_WALTONS[2]=1                                                                     
+#WALLET[2]=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
+#EXTRA_DATA[2]=glyph                                                                 
+#RPC_PORT_START[2]=8545                                                            
+#IP[2]=127.0.0.1
+                                                                              
 ################################[USER OPTIONS]#####################################/
 
 
 unset RPC_PORTS 
 unset PEERS
 unset peerCount
-unset RIG_INFO_ARRAY 
+unset ENODE_ZEROS
 declare -a RPC_PORTS
 declare -a PEERS
 declare -a peerCount
-declare -a RIG_INFO_ARRAY
+declare -a ENODE_ZEROS
 CT="Content-Type:application/json"
 echo " " > results.txt
 
@@ -41,7 +62,7 @@ cyn=$'\e[36m'
 end=$'\e[0m' #produced different color results -- figure out why.
 
 function enumRPCPorts () {    
-    for ((i=0;i<$NUM_OF_GPUS;i++)); do
+    for ((i=0;i<${NUMBER_OF_WALTONS[$1]};i++)); do
         RPC_PORTS[$i]=$(($RPC_PORT_START+$i))    
     done        
 }
@@ -408,7 +429,7 @@ function adminPeersRemoteIP () {
         for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
             OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP \e[91m$i\e[32m...\e[33m"`            
             echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
+            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2>/dev/null | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
         done                
@@ -441,33 +462,50 @@ function pingPeers() {
         ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1 | awk '{print $9}' | cut -d '/' -f 2       
     done #| column 
 }
-function wMain() {
-    
-    adminNodeInfoEnode 1 $IP ${RPC_PORTS[0]}
-    ENODE_WALTON0=`echo $RESULT`
+################################[USER OPTIONS]#####################################/
+function wMain() { 
 
-        enumRPCPorts
+
+
+
+        enumRPCPorts $1
+        adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]}
+        ENODE_ZEROES[$1]=`echo $RESULT`
+        echo ${ENODE_ZEROES[$1]}
+        echo -e "\e[97mIPv4 LAN ADDRESS(ES): "
+        ipconfig | grep "IPv4" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"
         echo -e "\e[32mRunning on RPC PORTS: '${RPC_PORTS[*]}'"
-        #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"
+        
 
-        minerSetEtherbase $NUMBER_OF_WALTONS $IP $RPC_PORT_START $WALLET    
-        minerSetExtra $NUMBER_OF_WALTONS $IP $RPC_PORT_START $EXTRA_DATA 
-        adminAddPeer $NUMBER_OF_WALTONS $IP $RPC_PORT_START $ENODE_WALTON0    
-               
-        ethMining $NUMBER_OF_WALTONS $IP $RPC_PORT_START       
-        ethBlockNumber $NUMBER_OF_WALTONS $IP $RPC_PORT_START    
-        adminNodeInfoEnode $NUMBER_OF_WALTONS $IP $RPC_PORT_START        
+        
+
+        minerSetEtherbase ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${WALLET[$1]}    
+        minerSetExtra ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${EXTRA_DATA[$1]}
+        
+        for ((k=0;k<$1+1;k++)); do 
+            adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}
+        done            
+        
+        ethMining ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}       
+        
+        ethBlockNumber ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} 
+
+        adminNodeInfoEnode ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}
+
            
-        adminPeersID $NUMBER_OF_WALTONS $IP $RPC_PORT_START    
-        pingPeers $NUMBER_OF_WALTONS $IP $RPC_PORT_START
+        pingPeers ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}
+        
+        #adminPeersID $NUMBER_OF_WALTONS $IP $RPC_PORT_START #stand alone adminPeersID example.
         #ethCoinbase $NUMBER_OF_WALTONS $IP $RPC_PORT_START #stand alone coinbase example.
         #adminPeersRemoteIP $NUMBER_OF_WALTONS $IP $RPC_PORT_START #adminPeersRemoteIP stand alone example.
-        #netPeerCount $NUMBER_OF_WALTONS $IP $RPC_PORT_START  #netPeerCount stand alone example.    
+        #netPeerCount $NUMBER_OF_WALTONS $IP $RPC_PORT_START  #netPeerCount stand alone example.  
+        #IPv6=$(curl --silent icanhazip.com) && echo "$IPv6"  
         echo -e -n "\e[97m"     
 }
-    NUM_OF_RIGS=1
-    for ((r=1;r<=$NUM_OF_RIGS;r++)); do
+################################[USER OPTIONS]#####################################/
+#RIGLOOP THROUGH wMain()
 
-        wMain
-    done
+for ((r=0;r<$NUM_OF_RIGS;r++)); do    
+    wMain $r 
+done
 
