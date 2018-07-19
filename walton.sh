@@ -14,7 +14,7 @@ declare -a WALLET
 declare -a EXTRA_DATA
 declare -a RPC_PORT
 declare -a IP
-r=0
+
 ################################[USER OPTIONS]#####################################\
 NUM_OF_RIGS=1
 
@@ -464,22 +464,16 @@ function pingPeers() {
 }
 ################################[USER OPTIONS]#####################################/
 function wMain() { 
-
-
-
-
         enumRPCPorts $1
         adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]}
         ENODE_ZEROES[$1]=`echo $RESULT`
         echo ${ENODE_ZEROES[$1]}
         echo -e "\e[97mIPv4 LAN ADDRESS(ES): "
         ipconfig | grep "IPv4" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"
-        echo -e "\e[32mRunning on RPC PORTS: '${RPC_PORTS[*]}'"
-        
+        echo -e "\e[32mRunning on RPC PORTS: '${RPC_PORTS[*]}'"        
 
-        
+        minerSetEtherbase ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${WALLET[$1]}
 
-        minerSetEtherbase ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${WALLET[$1]}    
         minerSetExtra ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${EXTRA_DATA[$1]}
         
         for ((k=0;k<$1+1;k++)); do 
@@ -491,7 +485,6 @@ function wMain() {
         ethBlockNumber ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} 
 
         adminNodeInfoEnode ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}
-
            
         pingPeers ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}
         
