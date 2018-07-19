@@ -204,7 +204,7 @@ function adminAddPeer () {
 }
 function netPeerCount () {
     walton=0
-    echo -e "\e[32m"
+    echo -e -n "\e[32m"
     if [ -z $1 ]; then
         echo -e "\e[32mdidn't get any arguments -- use at least one argument for the number of instances"
         return -1
@@ -464,10 +464,7 @@ function pingPeers() {
 }
 ################################[USER OPTIONS]#####################################/
 function wMain() { 
-        enumRPCPorts $1
-        adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]}
-        ENODE_ZEROES[$1]=`echo $RESULT`
-        echo ${ENODE_ZEROES[$1]}
+        enumRPCPorts $1              
         echo -e "\e[97mIPv4 LAN ADDRESS(ES): "
         ipconfig | grep "IPv4" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"
         echo -e "\e[32mRunning on RPC PORTS: '${RPC_PORTS[*]}'"        
@@ -476,6 +473,8 @@ function wMain() {
 
         minerSetExtra ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${EXTRA_DATA[$1]}
         
+        adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]} 1> /dev/null
+        ENODE_ZEROES[$1]=`echo $RESULT`  
         for ((k=0;k<$1+1;k++)); do 
             adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}
         done            
