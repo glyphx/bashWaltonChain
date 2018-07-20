@@ -22,8 +22,8 @@ NUM_OF_RIGS=1
 NUMBER_OF_WALTONS[0]=1                                  #walton.exe's                 
 WALLET[0]=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
 EXTRA_DATA[0]=glyph                                     #less than or equal to 31 characters                                  
-RPC_PORT_START[0]=8545                                                            
-IP[0]=127.0.0.1
+RPC_PORT_START[0]=8000                                                            
+IP[0]=10.0.0.101
 
 ###RIG2###
 #NUMBER_OF_WALTONS[1]=1                                                                     
@@ -469,18 +469,20 @@ function wMain() {
         echo -e "\e[97mIPv4 LAN ADDRESS(ES): "
         ipconfig | grep "IPv4" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"
         echo -e "\e[32mRunning on RPC PORTS: '${RPC_PORTS[*]}'"        
-
+        
         minerSetEtherbase ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${WALLET[$1]}
 
         minerSetExtra ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${EXTRA_DATA[$1]}
         
         adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]} 1> /dev/null
         ENODE_ZEROES[$1]="${RESULT}"         
-        for ((k=0;k<$1+1;k++)); do 
-            adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}            
+        #for ((k=0;k<$1+1;k++)); do             
+            #adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}            
             adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}         
-        done            
-        
+        #done            
+        adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} enode://284ab3de33d9442dc4de37fe843bc5490386f3c025216729d3ede3234140d63f7cb1b0cec9fad545adc669ad982cd7e5c92c109a203cef3e751a1ab056584446@78.129.218.56:30303
+
+        #adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} 
         ethMining ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}       
         
         ethBlockNumber ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} 
