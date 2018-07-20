@@ -22,8 +22,8 @@ NUM_OF_RIGS=1
 NUMBER_OF_WALTONS[0]=1                                  #walton.exe's                 
 WALLET[0]=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
 EXTRA_DATA[0]=glyph                                     #less than or equal to 31 characters                                  
-RPC_PORT_START[0]=8000                                                            
-IP[0]=10.0.0.101
+RPC_PORT_START[0]=8545                                                            
+IP[0]=127.0.0.1
 
 ###RIG2###
 #NUMBER_OF_WALTONS[1]=1                                                                     
@@ -475,7 +475,7 @@ function wMain() {
         minerSetExtra ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${EXTRA_DATA[$1]}
         
         adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]} 1> /dev/null
-        ENODE_ZEROES[$1]="${RESULT}"         
+        ENODE_ZEROES[$1]=${RESULT}         
         #for ((k=0;k<$1+1;k++)); do             
             #adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}            
             adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}         
