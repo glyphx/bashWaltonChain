@@ -192,7 +192,8 @@ function adminAddPeer () {
         echo 'Nothing was set as argument 4, usage: adminAddPeer 1 localhost 8545 enode://<id>@<ip:port>'
         return -1
     else
-        PEER_ENODE='"'$4'"'
+        
+        PEER_ENODE='"'`echo -n $4 | stripQuotations`'"'
     fi
     for ((i=1; i<=$1; i++)); do
         OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Adding Peer... as:\e[32m $PEER_ENODE\e[96m"`
@@ -473,12 +474,12 @@ function wMain() {
 
         minerSetExtra ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${EXTRA_DATA[$1]}
         
-       # adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]} 1> /dev/null
-       # ENODE_ZEROES[$1]=`echo $RESULT`  
-       # for ((k=0;k<$1+1;k++)); do 
-       #     adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}
-       #     adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}           
-       # done            
+        adminNodeInfoEnode 1 ${IP[$1]} ${RPC_PORTS[0]} 1> /dev/null
+        ENODE_ZEROES[$1]="${RESULT}"         
+        for ((k=0;k<$1+1;k++)); do 
+            adminAddPeer 1 ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}            
+            adminAddPeer ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]} ${ENODE_ZEROES[$1]}         
+        done            
         
         ethMining ${NUMBER_OF_WALTONS[$1]} ${IP[$1]} ${RPC_PORT_START[$1]}       
         
