@@ -19,7 +19,7 @@ declare -a IP
 NUM_OF_RIGS=1
 
 ###RIG1###
-NUMBER_OF_WALTONS[0]=1                                  #walton.exe's                 
+NUMBER_OF_WALTONS[0]=2                                  #walton.exe's                 
 WALLET[0]=0xf3faf814cd115ebba078085a3331774b762cf5ee                                
 EXTRA_DATA[0]=glyph                                     #less than or equal to 31 characters                                  
 RPC_PORT_START[0]=8545                                                            
@@ -392,11 +392,13 @@ function adminPeersID () {
     declare -a peerCount
     netPeerCount $1 $2 $3 #needed to set global peer array
     walton=0
-    for ((j=1; j<=$1; j++)); do       
+    for ((j=1; j<=$1; j++)); do
+    unset PEERS
+    declare -a PEERS       
         for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
             OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerID \e[91m$i\e[32m...\e[33m"`
             echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2> /dev/null | ./jq .[$i].'id'  2> /dev/null` 
+            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2> /dev/null | ./jq .[$i].'id'  2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
         done               
@@ -426,14 +428,55 @@ function adminPeersRemoteIP () {
     declare -a peerCount    
     netPeerCount $1 $2 $3 #needed to set global peer array
     walton=0
-    for ((j=1; j<=$1; j++)); do     
+    for ((j=1; j<=$1; j++)); do
+    unset PEERS
+    declare -a PEERS     
         for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
             OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeerRemoteIP \e[91m$i\e[32m...\e[33m"`            
             echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
-            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2>/dev/null | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
+            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2>/dev/null | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
             RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT       
             PEERS[$(($i+$j-1))]=$RESULT
         done                
+        walton=$(($walton + 1))        
+    done
+}
+function adminPeersIPENODE () {
+    walton=0    
+    echo -e "\e[32m"
+    if [ -z $1 ]; then
+        echo -e "\e[32m adminPeersIPENODE didn't get any arguments -- use at least one argument for the number of instances"
+        return -1
+    fi
+    if [ -z $2 ]; then
+        RPC_SERVER_IP=127.0.0.1
+        echo -e "\e[32mSetting IP to 127.0.0.1..."
+        else
+            RPC_SERVER_IP=$2
+    fi
+    if [ -z $3 ]; then
+        RPC_START_PORT=8545
+        echo "Setting RPC Start Port To: 8545..."
+    else
+        RPC_START_PORT=$3
+    fi
+    unset peerCount
+    declare -a peerCount    
+    netPeerCount $1 $2 $3 #needed to set global peer array
+    walton=0
+    for ((j=1; j<=$1; j++)); do
+    unset PEERS
+    declare -a PEERS     
+        for ((i=0; i<${peerCount[$(($j-1))]}; i++)); do
+            OUTPUT=`echo -e "\e[94m[\e[96mwalton:\e[91m$walton\e[94m]\e[95m\e[32m Getting adminPeer IP AND ENODE \e[91m$i\e[32m...\e[33m"`            
+            echo $OUTPUT && echo $OUTPUT | stripColors >> results.txt
+            CMD=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2>/dev/null | ./jq .[$i].'network'.'remoteAddress' 2> /dev/null` 
+            CMD2=`curl --silent $RPC_SERVER_IP:''$(($RPC_START_PORT + $walton))'' -H $CT -X POST --data '{"jsonrpc":"2.0","method":"admin_peers","params":[],"id":64}' | ./jq -r .[0.?] 2> /dev/null | ./jq .[$i].'id'  2> /dev/null`
+            RESULT=`echo $CMD  | tee -a results.txt` && echo $RESULT
+            RESULT2=`echo $CMD2  | tee -a results.txt` && echo $RESULT2       
+            PEERS[$(($i+$j-1))]=$RESULT
+        done
+                        
         walton=$(($walton + 1))        
     done
 }
@@ -463,6 +506,7 @@ function pingPeers() {
         ping -4 -w 750 -n 2 $(echo -n ${PEER} | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}') | tail -1 | awk '{print $9}' | cut -d '/' -f 2       
     done #| column 
 }
+
 ################################[USER OPTIONS]#####################################/
 function wMain() { 
         enumRPCPorts $1              
